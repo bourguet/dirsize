@@ -35,9 +35,10 @@ all: dirsize
 
 PROG1=dirsize
 OBJ1=dirsize.o
+CXXFLAGS=-O2
 
 $(PROG1): $(OBJ1)
-	$(CXX) $(CFLAGS) $(LDFLAGS) -o $(PROG1) $(OBJ1) $(LOADLIBES) $(LDLIBS)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(PROG1) $(OBJ1) $(LOADLIBES) $(LDLIBS)
 
 clean:
 	@-rm *.o *~
