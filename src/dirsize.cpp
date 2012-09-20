@@ -289,6 +289,15 @@ HierInfo readDirectoryStructure(std::string const& dir)
     long long dirSize = 0;
     long long subDirSize = 0;
     message("Reading " + dir);
+
+    {
+        struct stat info;
+        if (lstat(dir.c_str(), &info) != 0) {
+            message("Error while getting information about " + dir);
+        } else {
+            dirSize += info.st_blocks;
+        }
+    }
     DIR* dirIter = opendir(dir.c_str());
     if (dirIter == NULL) {
         error("Unable to open " + dir);
@@ -306,7 +315,6 @@ HierInfo readDirectoryStructure(std::string const& dir)
                 if (lstat(path.c_str(), &info) != 0) {
                     message("Error while getting information about " + path);
                 } else {
-                    dirSize += info.st_blocks;
                     if (S_ISDIR(info.st_mode)
                         && theIgnoredDirectories.find(path) == theIgnoredDirectories.end())
                     {
@@ -315,10 +323,7 @@ HierInfo readDirectoryStructure(std::string const& dir)
                         subDirSize += subInfo.size;
                         result.subInfo.push_back(subInfo);
                     } else {
-                        HierInfo subInfo;
-                        subInfo.name = name;
-                        subInfo.size = info.st_blocks;
-                        result.subInfo.push_back(subInfo);
+                        dirSize += info.st_blocks;
                     }
                 }
             }
