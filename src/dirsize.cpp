@@ -1,6 +1,7 @@
-// -*- C++ -*-
-//
 // dirsize
+//
+// ----------------------------------------------------------------------------
+//
 // Copyright (C) 2012  Jean-Marc Bourguet
 //
 // All rights reserved.
@@ -32,6 +33,8 @@
 // NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
+// ----------------------------------------------------------------------------
+//
 // Show the directory usage
 //
 // ----------------------------------------------------------------------------
@@ -53,8 +56,8 @@
 #include <iomanip>
 #include <iterator>
 
-// stat returns info in number of blocks of 512 bytes
-long long const blockSize = 512;
+#include "info.hpp"
+#include "DirInfo.hpp"
 
 // ----------------------------------------------------------------------------
 
@@ -65,138 +68,6 @@ public:
     Not_A_Valid_Number(std::string const& n)
         : std::domain_error("\"" + n + "\n is not a valid number") {}
 }; // Not_A_Valid_Number
-
-
-// ----------------------------------------------------------------------------
-// Info
-// ----------------------------------------------------------------------------
-
-class Info
-{
-public:
-    Info(std::string const& pName, long long pSize)
-        : name(pName), size(pSize) {}
-    // Info(Info const&);
-    // Info& operator=(Info const&);
-    // ~Info();
-
-    std::string name;
-    long long   size;
-}; // Info
-
-// ----------------------------------------------------------------------------
-
-std::ostream& operator<<(std::ostream& os, Info const& i)
-{
-    os << std::setw(15) << i.size*blockSize << " " << i.name;
-} // operator<<
-
-// ----------------------------------------------------------------------------
-// IsSmallerThan
-// ----------------------------------------------------------------------------
-
-class IsSmallerThan
-{
-public:
-    IsSmallerThan(long long limit) : myLimit(limit) {}
-    // IsSmallerThan(IsSmallerThan const&);
-    // IsSmallerThan& operator=(IsSmallerThan const&);
-    // ~IsSmallerThan();
-
-    bool operator()(Info const& i) const;
-private:
-    long long myLimit;
-}; // IsSmallerThan
-
-// ----------------------------------------------------------------------------
-
-bool IsSmallerThan::operator()(Info const& i) const
-{
-    return i.size*blockSize < myLimit;
-} // IsSmallerThan::operator()
-
-// ----------------------------------------------------------------------------
-// HierInfo
-// ----------------------------------------------------------------------------
-
-class HierInfo
-{
-public:
-    // HierInfo();
-    // HierInfo(HierInfo const&);
-    // HierInfo& operator=(HierInfo const&);
-    // ~HierInfo();
-
-    std::string name;
-    long long   size;
-    std::vector<HierInfo> subInfo;
-
-    void show(int indent, std::vector<bool> need);
-}; // HierInfo
-
-
-// ----------------------------------------------------------------------------
-// IsHierSizeSmallerThan
-// ----------------------------------------------------------------------------
-
-class IsHierSizeSmallerThan
-{
-public:
-    IsHierSizeSmallerThan(long long limit) : myLimit(limit) {}
-    // IsHierSizeSmallerThan(IsHierSizeSmallerThan const&);
-    // IsHierSizeSmallerThan& operator=(IsHierSizeSmallerThan const&);
-    // ~IsHierSizeSmallerThan();
-    bool operator()(HierInfo const& i) const;
-private:
-    long long myLimit;
-}; // IsHierSizeSmallerThan
-
-// ----------------------------------------------------------------------------
-
-bool IsHierSizeSmallerThan::operator()(HierInfo const& i) const
-{
-    return i.size*blockSize < myLimit;
-} // IsSmallerThan::operator()
-
-// ----------------------------------------------------------------------------
-
-bool isHierBigger(HierInfo const& left, HierInfo const& right)
-{
-    return left.size > right.size;
-} // isSmaller
-
-// ----------------------------------------------------------------------------
-
-std::set<std::string> theIgnoredDirectories;
-bool theSilent = false;
-long long theMinimunSize = 0;
-std::vector<Info> theFlatInfo;
-
-// ----------------------------------------------------------------------------
-
-void HierInfo::show(int indent, std::vector<bool> need = std::vector<bool>())
-{
-    std::cout << std::setw(15) << size*blockSize << " ";
-    for (int i = 0; i+1 < indent; ++i)
-        if (need[i])
-            std::cout << "| ";
-        else
-            std::cout << "  ";
-    if (indent > 0)
-        std::cout << "+ ";
-    std::cout << name << '\n';
-    subInfo.erase(std::remove_if(subInfo.begin(), subInfo.end(),
-                                 IsHierSizeSmallerThan(theMinimunSize)),
-                  subInfo.end());
-    std::sort(subInfo.begin(), subInfo.end(), isHierBigger);
-    need.push_back(true);
-    for (std::vector<HierInfo>::iterator i = subInfo.begin();
-         i != subInfo.end(); ++i)
-    {
-        need.back() = (i+1) != subInfo.end();
-        i->show(indent+1, need);
-    }
-} // show
 
 // ----------------------------------------------------------------------------
 
@@ -265,95 +136,50 @@ long long evalString(std::string const& s, bool suffixes, bool binarySuffixes)
 
 // ----------------------------------------------------------------------------
 
-void message(std::string const& msg)
+// ----------------------------------------------------------------------------
+// FlatDirDisplayer
+// ----------------------------------------------------------------------------
+
+class FlatDirDisplayer: public std::iterator<std::output_iterator_tag, DirInfo*>
 {
-    if (theSilent)
-        return;
-    char const* clearToEol = "\033[K";
-    std::cout << msg << clearToEol << '\r' << std::flush;
-} // message
+public:
+    FlatDirDisplayer(std::ostream& os);
+    // FlatDirDisplayer(FlatDirDisplayer const&);
+    // ~FlatDirDisplayer();
+
+    FlatDirDisplayer& operator=(DirInfo* info);
+    FlatDirDisplayer& operator++() { return *this; }
+    FlatDirDisplayer& operator++(int) { return *this; }
+    FlatDirDisplayer& operator*() { return *this; }
+private:
+    FlatDirDisplayer& operator=(FlatDirDisplayer const&);
+    
+    std::ostream& myOS;
+}; // FlatDirDisplayer
 
 // ----------------------------------------------------------------------------
 
-void error(std::string const& msg)
+FlatDirDisplayer::FlatDirDisplayer(std::ostream& os)
+    : myOS(os)
 {
-    std::string info(strerror(errno));
-    std::cerr << '\n' << msg << ": " << info << '\n' << std::flush;
-} // error
+} // FlatDirDisplayer
 
 // ----------------------------------------------------------------------------
 
-HierInfo readDirectoryStructure(std::string const& dir)
+FlatDirDisplayer& FlatDirDisplayer::operator=(DirInfo* info)
 {
-    HierInfo result;
-    long long dirSize = 0;
-    long long subDirSize = 0;
-    message("Reading " + dir);
-
-    {
-        struct stat info;
-        if (lstat(dir.c_str(), &info) != 0) {
-            message("Error while getting information about " + dir);
-        } else {
-            dirSize += info.st_blocks;
-        }
-    }
-    DIR* dirIter = opendir(dir.c_str());
-    if (dirIter == NULL) {
-        error("Unable to open " + dir);
-    } else {
-        dirent* entry;
-        for (errno = 0, entry = readdir(dirIter);
-             entry != NULL;
-             errno = 0, entry = readdir(dirIter))
-        {
-            std::string name(entry->d_name);
-            std::string path(dir + '/' + name);
-            if (name != "." && name != "..")
-            {
-                struct stat info;
-                if (lstat(path.c_str(), &info) != 0) {
-                    message("Error while getting information about " + path);
-                } else {
-                    if (S_ISDIR(info.st_mode)
-                        && theIgnoredDirectories.find(path) == theIgnoredDirectories.end())
-                    {
-                        HierInfo subInfo = readDirectoryStructure(path);
-                        subInfo.name = name;
-                        subDirSize += subInfo.size;
-                        result.subInfo.push_back(subInfo);
-                    } else {
-                        dirSize += info.st_blocks;
-                    }
-                }
-            }
-        }
-        if (errno != 0) {
-            error("Error while reading " + dir);
-        }
-        closedir(dirIter);
-    }
-    theFlatInfo.push_back(Info(dir, dirSize+subDirSize));
-    if (subDirSize != 0) {
-        theFlatInfo.push_back(Info(dir + " /files/", dirSize));
-        HierInfo files;
-        files.name = "/files/";
-        files.size = dirSize;
-        result.subInfo.push_back(files);
-    }
-    result.size = dirSize + subDirSize;    
-    return result;
-} // readDirectoryStructure
+    myOS << std::setw(15) << info->size() << " " << info->path() << '\n';
+} // operator=
 
 // ----------------------------------------------------------------------------
 
-bool isSmaller(Info const& left, Info const& right)
+bool isSmaller(DirInfo* l, DirInfo* r)
 {
-    return left.size < right.size;
+    return l->size() < r->size();
 } // isSmaller
 
 // ----------------------------------------------------------------------------
-
+    
 /// The main function
 int main(int argc, char* argv[])
 {
@@ -363,6 +189,7 @@ int main(int argc, char* argv[])
         int c, errcnt = 0;
         bool showHierInfo = false;
         bool showFlatInfo = true;
+        long long minimunSize = 0;
         
         std::locale::global(std::locale(""));
         
@@ -372,7 +199,7 @@ int main(int argc, char* argv[])
                 help();
                 throw 0;
             case 's':
-                theSilent = true;
+                setSilent(true);
                 break;
             case 't':
                 showHierInfo = true;
@@ -383,10 +210,10 @@ int main(int argc, char* argv[])
                 showHierInfo = true;
                 break;
             case 'i':
-                theIgnoredDirectories.insert(optarg);
+                DirInfo::addIgnoredDirectory(optarg);
                 break;
             case 'm':
-                theMinimunSize = evalString(optarg, true /* accept suffixes */, true /* binary suffixes */);
+                minimunSize = evalString(optarg, true /* accept suffixes */, true /* binary suffixes */);
                 break;
             case '?':
                 errcnt++;
@@ -406,16 +233,18 @@ int main(int argc, char* argv[])
             throw EXIT_FAILURE;
         }
 
-        HierInfo info = readDirectoryStructure(".");
-        if (!theSilent)
+        DirInfo* topInfo = new DirInfo(".", ".", NULL);
+        if (!isSilent())
             std::cout << "Reading directory structure done\n";
-        info.name = ".";
-        if (showHierInfo)
-            info.show(0);
+        if (showHierInfo) {
+            topInfo->showTree(std::cout, minimunSize);
+        }
         if (showFlatInfo) {
-            theFlatInfo.erase(std::remove_if(theFlatInfo.begin(), theFlatInfo.end(), IsSmallerThan(theMinimunSize)), theFlatInfo.end());
-            std::sort(theFlatInfo.begin(), theFlatInfo.end(), isSmaller);
-            std::copy(theFlatInfo.begin(), theFlatInfo.end(), std::ostream_iterator<Info>(std::cout, "\n"));
+            std::deque<DirInfo*> flatDirs;
+            flatDirs.push_back(topInfo);
+            topInfo->collect(minimunSize, flatDirs);
+            std::sort(flatDirs.begin(), flatDirs.end(), isSmaller);
+            std::copy(flatDirs.begin(), flatDirs.end(), FlatDirDisplayer(std::cout));
         }
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';

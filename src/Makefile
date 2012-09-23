@@ -34,7 +34,7 @@
 all: dirsize
 
 PROG1=dirsize
-OBJ1=dirsize.o
+OBJ1=dirsize.o info.o DirInfo.o
 CXXFLAGS=-O2
 
 $(PROG1): $(OBJ1)

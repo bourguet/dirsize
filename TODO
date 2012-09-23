@@ -1,4 +1,0 @@
-- restructure, this is a proof of concept
-
-- ensure that HierInfo aren't copied (either C++11 move semantic or dynamic
-  allocation, NRVO isn't enough for that)
