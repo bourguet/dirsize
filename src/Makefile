@@ -36,14 +36,27 @@ all: dirsize
 PROG1=dirsize
 OBJ1=dirsize.o info.o DirInfo.o
 CXXFLAGS=-O2
+CXXDBGFLAGS=-g
+
+ifeq ($(CXX),g++)
+GCCWARN=-Wall -Wextra
+CXXFLAGS+=-MMD $(GCCWARN)
+CXXDBGFLAGS+=-MMD $(GCCWARN)
+endif
 
 $(PROG1): $(OBJ1)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(PROG1) $(OBJ1) $(LOADLIBES) $(LDLIBS)
 
+debug: CXXFLAGS=$(CXXDBGFLAGS)
+debug: all
+
 clean:
 	@-rm *.o *~
 
-realclean: clean
+distclean: clean
 	@-rm $(PROG1)
 
-distclean: realclean
+realclean: clean
+	@-rm *.d
+
+-include $(OBJ1:.o=.d)

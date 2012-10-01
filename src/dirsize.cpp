@@ -89,6 +89,7 @@ void help()
         "-h          this help\n"
         "-i dir      ignore dir, may be specified several times\n"
         "-m minSize  show only directories whose size is above minSize\n"
+        "-p percent  show only directories whose size if more than percent percent of total size\n"
         "-s          silent, don't show progress\n";
 } // help
 
@@ -169,6 +170,7 @@ FlatDirDisplayer::FlatDirDisplayer(std::ostream& os)
 FlatDirDisplayer& FlatDirDisplayer::operator=(DirInfo* info)
 {
     myOS << std::setw(15) << info->size() << " " << info->path() << '\n';
+    return *this;
 } // operator=
 
 // ----------------------------------------------------------------------------
@@ -189,11 +191,12 @@ int main(int argc, char* argv[])
         int c, errcnt = 0;
         bool showHierInfo = false;
         bool showFlatInfo = true;
-        long long minimunSize = 0;
+        long long minimumSize = 0;
+        int minimumPercent = 0;
         
         std::locale::global(std::locale(""));
         
-        while (c = getopt(argc, argv, "hsi:m:tb"), c != -1) {
+        while (c = getopt(argc, argv, "hsi:m:p:tb"), c != -1) {
             switch (c) {
             case 'h':
                 help();
@@ -213,7 +216,17 @@ int main(int argc, char* argv[])
                 DirInfo::addIgnoredDirectory(optarg);
                 break;
             case 'm':
-                minimunSize = evalString(optarg, true /* accept suffixes */, true /* binary suffixes */);
+                minimumSize = evalString(optarg, true /* accept suffixes */, true /* binary suffixes */);
+                break;
+            case 'p':
+                minimumPercent = evalString(optarg, false, false);
+                if (minimumPercent < 0) {
+                    std::cerr << "Minimum percentage should be above 0\n";
+                    errcnt++;
+                } else if (minimumPercent > 100) {
+                    std::cerr << "Minimum percentage should be below 100\n";
+                    errcnt++;
+                }
                 break;
             case '?':
                 errcnt++;
@@ -236,13 +249,15 @@ int main(int argc, char* argv[])
         DirInfo* topInfo = new DirInfo(".", ".", NULL);
         if (!isSilent())
             std::cout << "Reading directory structure done\n";
+        if (topInfo->size() * minimumPercent / 100 > minimumSize)
+            minimumSize = topInfo->size() * minimumPercent / 100;
         if (showHierInfo) {
-            topInfo->showTree(std::cout, minimunSize);
+            topInfo->showTree(std::cout, minimumSize);
         }
         if (showFlatInfo) {
             std::deque<DirInfo*> flatDirs;
             flatDirs.push_back(topInfo);
-            topInfo->collect(minimunSize, flatDirs);
+            topInfo->collect(minimumSize, flatDirs);
             std::sort(flatDirs.begin(), flatDirs.end(), isSmaller);
             std::copy(flatDirs.begin(), flatDirs.end(), FlatDirDisplayer(std::cout));
         }
