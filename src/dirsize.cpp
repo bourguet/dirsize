@@ -195,6 +195,7 @@ int main(int argc, char* argv[])
         int minimumPercent = 0;
         
         std::locale::global(std::locale(""));
+        std::cout.imbue(std::locale());
         
         while (c = getopt(argc, argv, "hsi:m:p:tb"), c != -1) {
             switch (c) {
