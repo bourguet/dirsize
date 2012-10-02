@@ -33,7 +33,10 @@
 
 SUBDIRS=src
 project:=$(notdir $(shell pwd))
-prefix=/opt/bourguet/$(project)
+prefix:=/opt/bourguet/$(project)
+bindir:=$(prefix)/bin
+
+.PHONY: all clean realclean distclean
 
 all clean realclean distclean:
 	@for dir in $(SUBDIRS); do \
@@ -55,8 +58,8 @@ dist:
 	$(MAKE) distclean
 	cd .. ; tar cjfX $(project)$(VERSION).tar.bz $(project)/excluded $(project)
 
-install: all $(DESTDIR)$(prefix)/bin
-	cp src/dirsize $(DESTDIR)$(prefix)/bin
+install: all $(DESTDIR)$(bindir)
+	cp src/dirsize $(DESTDIR)$(bindir)
 
-$(DESTDIR)$(prefix)/bin:
-	@mkdir -p $(DESTDIR)$(prefix)/bin
+$(DESTDIR)$(bindir):
+	@mkdir -p $(DESTDIR)$(bindir)

@@ -100,7 +100,7 @@ long long evalString(std::string const& s, bool suffixes, bool binarySuffixes)
 {
     char const* data = s.c_str();
     char* end;
-    long result = strtoll(data, &end, 0);
+    long long result = strtoll(data, &end, 0);
     if (suffixes) {
         if (binarySuffixes || (*end != '\0' && end[1] == 'i')) {
             switch (*end) {
@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
         bool showHierInfo = false;
         bool showFlatInfo = true;
         long long minimumSize = 0;
-        int minimumPercent = 0;
+        long long minimumPercent = 0;
         
         std::locale::global(std::locale(""));
         std::cout.imbue(std::locale());

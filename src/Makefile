@@ -38,7 +38,7 @@ OBJ1=dirsize.o info.o DirInfo.o
 CXXFLAGS=-O2
 CXXDBGFLAGS=-g
 
-ifeq ($(CXX),g++)
+ifeq ($(notdir $(CXX)),g++)
 GCCWARN=-Wall -Wextra
 CXXFLAGS+=-MMD $(GCCWARN)
 CXXDBGFLAGS+=-MMD $(GCCWARN)
