@@ -61,6 +61,13 @@
 
 // ----------------------------------------------------------------------------
 
+bool showHierInfo = false;
+bool showFlatInfo = true;
+long long minimumSize = 0;
+long long minimumPercent = 0;        
+
+// ----------------------------------------------------------------------------
+
 /// Exception class for evalString
 class Not_A_Valid_Number: public std::domain_error
 {
@@ -74,7 +81,7 @@ public:
 /// Display simple usage information
 void usage()
 {
-    std::cout << "Usage: dirsize [-hs] [-i dir] [-m minSize]\n";
+    std::cout << "Usage: dirsize [-hs] [-i dir] [-m minSize] [-p minPercent] dirs...\n";
 } // usage
 
 // ----------------------------------------------------------------------------
@@ -181,7 +188,30 @@ bool isSmaller(DirInfo* l, DirInfo* r)
 } // isSmaller
 
 // ----------------------------------------------------------------------------
-    
+
+void handleDirectory(std::string const& dir)
+{
+    DirInfo* topInfo = new DirInfo(dir, dir, NULL);
+    long long minSize = minimumSize;
+    if (!isSilent())
+        std::cout << "Reading directory structure done\n";
+    if (topInfo->size() * minimumPercent / 100 > minSize)
+        minSize = topInfo->size() * minimumPercent / 100;
+    if (showHierInfo) {
+        topInfo->showTree(std::cout, minSize);
+    }
+    if (showFlatInfo) {
+        std::deque<DirInfo*> flatDirs;
+        flatDirs.push_back(topInfo);
+        topInfo->collect(minimumSize, flatDirs);
+        std::sort(flatDirs.begin(), flatDirs.end(), isSmaller);
+        std::copy(flatDirs.begin(), flatDirs.end(), FlatDirDisplayer(std::cout));
+    }
+    delete topInfo;
+} // handleDirectory
+
+// ----------------------------------------------------------------------------
+
 /// The main function
 int main(int argc, char* argv[])
 {
@@ -189,11 +219,6 @@ int main(int argc, char* argv[])
     
     try {
         int c, errcnt = 0;
-        bool showHierInfo = false;
-        bool showFlatInfo = true;
-        long long minimumSize = 0;
-        long long minimumPercent = 0;
-        
         std::locale::global(std::locale(""));
         std::cout.imbue(std::locale());
         
@@ -238,29 +263,17 @@ int main(int argc, char* argv[])
             }
         }
         
-        if (optind < argc) {
-            errcnt++;
-        }
-
         if (errcnt > 0) {
             usage();
             throw EXIT_FAILURE;
         }
 
-        DirInfo* topInfo = new DirInfo(".", ".", NULL);
-        if (!isSilent())
-            std::cout << "Reading directory structure done\n";
-        if (topInfo->size() * minimumPercent / 100 > minimumSize)
-            minimumSize = topInfo->size() * minimumPercent / 100;
-        if (showHierInfo) {
-            topInfo->showTree(std::cout, minimumSize);
-        }
-        if (showFlatInfo) {
-            std::deque<DirInfo*> flatDirs;
-            flatDirs.push_back(topInfo);
-            topInfo->collect(minimumSize, flatDirs);
-            std::sort(flatDirs.begin(), flatDirs.end(), isSmaller);
-            std::copy(flatDirs.begin(), flatDirs.end(), FlatDirDisplayer(std::cout));
+        if (optind < argc) {
+            for ( ; optind < argc; ++optind) {
+                handleDirectory(argv[optind]);
+            }
+        } else {
+            handleDirectory(".");
         }
     } catch (std::exception& e) {
         std::cerr << "Error: " << e.what() << '\n';
