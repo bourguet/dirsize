@@ -192,14 +192,14 @@ std::deque<DirInfo*>& DirInfo::subDirs()
 
 // ----------------------------------------------------------------------------
 
-void DirInfo::collect(long long minSize, std::deque<DirInfo*>& dirs) const
+void DirInfo::collect(long long minSize, std::deque<DirInfo*>& dirs, long long minDepth) const
 {
     for (std::deque<DirInfo*>::const_iterator i = mySubDirs.begin(), e = mySubDirs.end();
          i != e; ++i)
     {
-        if ((*i)->size() >= minSize) {
+        if ((*i)->size() >= minSize || minDepth > 0) {
             dirs.push_back(*i);
-            (*i)->collect(minSize, dirs);
+            (*i)->collect(minSize, dirs, minDepth-1);
         }
     }
 } // collect
@@ -228,16 +228,17 @@ bool DirInfo::ignored(std::string const& name, std::string const& path)
 
 // ----------------------------------------------------------------------------
 
-void DirInfo::showTree(std::ostream& os, long long minSize) const
+void DirInfo::showTree(std::ostream& os, long long minSize, long long minDepth) const
 {
     std::deque<bool> hasOtherDirs;
-    showTree(os, minSize, 0, hasOtherDirs);
+    showTree(os, minSize, 0, minDepth, hasOtherDirs);
 }
 
 // ----------------------------------------------------------------------------
 
 void DirInfo::showTree
-     (std::ostream& os, long long minSize, int level, std::deque<bool> hasOtherDirs)
+     (std::ostream& os, long long minSize, int level, long long minDepth,
+      std::deque<bool> hasOtherDirs)
     const
 {
     os << std::setw(15) << size() << " ";
@@ -249,9 +250,14 @@ void DirInfo::showTree
         os << "+ ";
     os << name() << '\n';
     std::deque<DirInfo*> selectedSubDir;
-    std::remove_copy_if(mySubDirs.begin(), mySubDirs.end(),
-                        std::back_inserter(selectedSubDir),
-                        IsSmallerThan(minSize));
+    if (minDepth <= level) {
+        std::remove_copy_if(mySubDirs.begin(), mySubDirs.end(),
+                            std::back_inserter(selectedSubDir),
+                            IsSmallerThan(minSize));
+    } else {
+        std::copy(mySubDirs.begin(), mySubDirs.end(),
+                  std::back_inserter(selectedSubDir));
+    }
     std::sort(selectedSubDir.begin(), selectedSubDir.end(), isBigger);
     hasOtherDirs.push_back(selectedSubDir.begin() != selectedSubDir.end());
     for (std::deque<DirInfo*>::iterator i = selectedSubDir.begin(),
@@ -259,7 +265,7 @@ void DirInfo::showTree
          i != e; ++i)
     {
         hasOtherDirs.back() = (i+1) != e;
-        (*i)->showTree(os, minSize, level+1, hasOtherDirs);
+        (*i)->showTree(os, minSize, level+1, minDepth, hasOtherDirs);
     }
 }
 

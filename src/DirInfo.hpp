@@ -65,8 +65,8 @@ public:
     std::deque<DirInfo*> const& subDirs() const;
     std::deque<DirInfo*>& subDirs();
 
-    void collect(long long minSize, std::deque<DirInfo*>& dirs) const;
-    void showTree(std::ostream& os, long long minSize) const;
+    void collect(long long minSize, std::deque<DirInfo*>& dirs, long long minDepth) const;
+    void showTree(std::ostream& os, long long minSize, long long minDepth) const;
     static void addIgnoredDirectory(std::string const& name);
 private: // and not implemented
     DirInfo(DirInfo const&);
@@ -86,7 +86,8 @@ private:
     std::deque<DirInfo*> mySubDirs;
 
     void showTree
-         (std::ostream& os, long long minSize, int level, std::deque<bool> hasOtherDirs)
+         (std::ostream& os, long long minSize, int level, long long minDepth,
+          std::deque<bool> hasOtherDirs)
         const;
     
 }; // DirInfo

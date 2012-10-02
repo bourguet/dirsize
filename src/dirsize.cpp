@@ -65,6 +65,7 @@ bool showHierInfo = false;
 bool showFlatInfo = true;
 long long minimumSize = 0;
 long long minimumPercent = 0;        
+long long minimumDepth = 0;
 
 // ----------------------------------------------------------------------------
 
@@ -81,7 +82,7 @@ public:
 /// Display simple usage information
 void usage()
 {
-    std::cout << "Usage: dirsize [-hs] [-i dir] [-m minSize] [-p minPercent] dirs...\n";
+    std::cout << "Usage: dirsize [-hstb] [-i dir] [-m minSize] [-p minPercent] [-d depth] dirs...\n";
 } // usage
 
 // ----------------------------------------------------------------------------
@@ -91,12 +92,15 @@ void help()
 {
     usage();
     std::cout <<
-        "Show the size of a tree of directories\n"
+        "Show the size of directories trees\n"
         "\n"
         "-h          this help\n"
         "-i dir      ignore dir, may be specified several times\n"
         "-m minSize  show only directories whose size is above minSize\n"
         "-p percent  show only directories whose size if more than percent percent of total size\n"
+        "-d depth    show at least all directories until depth\n"
+        "-t          show a directory tree\n"
+        "-b          show both a tree and a flat view\n"
         "-s          silent, don't show progress\n";
 } // help
 
@@ -198,12 +202,12 @@ void handleDirectory(std::string const& dir)
     if (topInfo->size() * minimumPercent / 100 > minSize)
         minSize = topInfo->size() * minimumPercent / 100;
     if (showHierInfo) {
-        topInfo->showTree(std::cout, minSize);
+        topInfo->showTree(std::cout, minSize, minimumDepth);
     }
     if (showFlatInfo) {
         std::deque<DirInfo*> flatDirs;
         flatDirs.push_back(topInfo);
-        topInfo->collect(minimumSize, flatDirs);
+        topInfo->collect(minSize, flatDirs, minimumDepth);
         std::sort(flatDirs.begin(), flatDirs.end(), isSmaller);
         std::copy(flatDirs.begin(), flatDirs.end(), FlatDirDisplayer(std::cout));
     }
@@ -222,7 +226,7 @@ int main(int argc, char* argv[])
         std::locale::global(std::locale(""));
         std::cout.imbue(std::locale());
         
-        while (c = getopt(argc, argv, "hsi:m:p:tb"), c != -1) {
+        while (c = getopt(argc, argv, "hstbi:m:p:d:"), c != -1) {
             switch (c) {
             case 'h':
                 help();
@@ -252,6 +256,12 @@ int main(int argc, char* argv[])
                 } else if (minimumPercent > 100) {
                     std::cerr << "Minimum percentage should be below 100\n";
                     errcnt++;
+                }
+                break;
+            case 'd':
+                minimumDepth = evalString(optarg, false, false);
+                if (minimumDepth < 0) {
+                    std::cerr << "Minimum depth should be above 0\n";
                 }
                 break;
             case '?':
