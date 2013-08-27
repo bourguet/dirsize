@@ -56,7 +56,7 @@ dist:
 	$(MAKE) realclean
 	$(MAKE) all
 	$(MAKE) distclean
-	cd .. ; tar cjfX $(project)$(VERSION).tar.bz $(project)/excluded $(project)
+	cd .. ; tar cjfX $(project)-$(VERSION).tar.bz $(project)/excluded $(project)
 
 install: all $(DESTDIR)$(bindir)
 	cp src/dirsize $(DESTDIR)$(bindir)
