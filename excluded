@@ -1,1 +1,4 @@
 .git
+*.d
+dirsize/.gitignore
+dirsize/excluded
