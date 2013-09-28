@@ -1,6 +1,6 @@
 # Makefile
 #
-# Copyright (c) 2004, 2012  Jean-Marc Bourguet
+# Copyright (c) 2013  Jean-Marc Bourguet
 # 
 # All rights reserved.
 # 
@@ -16,7 +16,7 @@
 #       documentation and/or other materials provided with the
 #       distribution.
 # 
-#     * Neither the name of the <ORGANIZATION> nor the names of its
+#     * Neither the name of Jean-Marc Bourguet nor the names of the other
 #       contributors may be used to endorse or promote products derived
 #       from this software without specific prior written permission.
 # 
@@ -34,30 +34,23 @@
 
 all:
 
-.PHONY: all debug
-.PHONY: clean distclean realclean
+.PHONY: all ps pdf
+.PHONY: clean realclean distclean
+.PHONY: clean.top realclean.top distclean.top
 
-PROGS=$(PROG1)
+PROGS:=dirsize
 
-PROG1=dirsize
-OBJ1=dirsize.o info.o DirInfo.o
+all: ps pdf
 
-CXXFLAGS=-O2
-CXXDBGFLAGS=-g
+ps: $(PROGS:=.ps)
 
-ifeq ($(notdir $(CXX)),g++)
-GCCWARN=-Wall -Wextra
-CXXFLAGS+=-MMD $(GCCWARN)
-CXXDBGFLAGS+=-MMD $(GCCWARN)
-endif
+pdf: $(PROGS:=.pdf)
 
-$(PROG1): $(OBJ1)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) -o $(PROG1) $(OBJ1) $(LOADLIBES) $(LDLIBS)
+%.ps: %.1
+	groff -T ps -man $^ > $@
 
-all: $(PROGS)
-
-debug: CXXFLAGS=$(CXXDBGFLAGS)
-debug: all
+%.pdf: %.ps
+	ps2pdf $^ $@
 
 clean:: clean.top
 
@@ -66,12 +59,10 @@ distclean:: distclean.top
 realclean:: realclean.top
 
 clean.top:
-	@-rm *~ *.o
+	@-rm *~
 
 distclean.top: clean.top
-	@-rm $(PROGS)
-	@-rm *.d
+	@-rm $(PROGS:=.ps) $(PROGS:=.pdf)
 
 realclean.top: distclean.top
 
--include $(OBJ1:.o=.d)

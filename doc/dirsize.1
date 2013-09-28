@@ -1,0 +1,56 @@
+.TH DIRSIZE 1 "September 28, 2013" "Jean-Marc Bourguet" "Jean-Marc Bourguet's Utilities"
+
+.SH NAME
+dirsize \- give details about disk occupation
+
+.SH SYNOPSIS
+.B dirsize
+[\|\fIOPTIONS\fR...\|] [\|\fIpathnames\fR...\|]
+
+.SH DESCRIPTION
+.B dirsize
+shows the directory tree disk occupation.
+
+.SH OPTIONS
+
+.TP
+.B \-h
+built in help.
+
+.TP
+.B \-s
+silent, don't show progress information when collecting data.
+
+.TP
+.B \-t 
+show a tree instead of a sorted flat view.
+
+.TP
+.B \-b
+show both a tree and a flat view.
+
+.TP
+.BI \-m " size"
+show only directories more than
+.I size
+bytes.
+
+.TP
+.BI \-p " percent"
+show only directories occupying more than
+.I percent
+percent of the tree.
+
+.TP
+.BI \-d " depth"
+show at least
+.I depth
+levels of subdirectories.
+
+.TP
+.BI \-i " dir"
+ignore \fIdir\fR.
+
+.SH SEE ALSO
+.BR df (1), 
+.BR du (1)

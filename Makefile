@@ -1,5 +1,5 @@
 # Makefile
-# Copyright (c) 2004, 2012  Jean-Marc Bourguet
+# Copyright (c) 2004, 2013  Jean-Marc Bourguet
 # 
 # All rights reserved.
 # 
@@ -31,26 +31,45 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-SUBDIRS=src
+all:
+
+SUBDIRS=src doc
 project:=$(notdir $(shell pwd))
 prefix:=/opt/bourguet/$(project)
 bindir:=$(prefix)/bin
+mandir:=$(prefix)/man
+man1dir:=$(mandir)/man1
 
-.PHONY: all clean realclean distclean
+PROGS:=dirsize
+MAN1PAGES:=dirsize.1
 
-all clean realclean distclean:
+.PHONY: all doc install 
+.PHONY: clean realclean distclean
+.PHONY: clean.top realclean.top distclean.top
+
+clean realclean distclean::
 	@for dir in $(SUBDIRS); do \
-	   (cd $$dir; $(MAKE) $@); \
-	done;  	      	      	   \
+	   $(MAKE) -C $$dir $@; \
+	done
 
-clean: clean.pre
+all:
+	@$(MAKE) -C src all
 
-clean.pre:
+doc:
+	@$(MAKE) -C doc all
+
+clean:: clean.top
+
+distclean:: distclean.top
+
+realclean:: realclean.top
+
+clean.top:
 	@-rm *~
 
-realclean: clean
+distclean.top: clean.top
 
-distclean: clean
+realclean.top: distclean.top
 
 dist:
 	$(MAKE) realclean
@@ -58,8 +77,12 @@ dist:
 	$(MAKE) distclean
 	cd .. ; tar cjfX $(project)-$(VERSION).tar.bz $(project)/excluded $(project)
 
-install: all $(DESTDIR)$(bindir)
-	cp src/dirsize $(DESTDIR)$(bindir)
+install: all $(DESTDIR)$(bindir) $(DESTDIR)$(man1dir)
+	cd src; cp $(PROGS) $(DESTDIR)$(bindir)
+	cd doc; cp $(MAN1PAGES) $(DESTDIR)$(man1dir)
 
 $(DESTDIR)$(bindir):
-	@mkdir -p $(DESTDIR)$(bindir)
+	@mkdir -p $@
+
+$(DESTDIR)$(man1dir):
+	@mkdir -p $@
