@@ -77,7 +77,7 @@ private:
 
     static bool ignored(std::string const& name, std::string const& path);
 
-    DirInfo(long long pSize, DirInfo* parent);
+    DirInfo(long long pSize, long long max, std::string const& name, DirInfo* parent);
     
     std::string myName;
     DirInfo* myParent;

@@ -36,14 +36,15 @@
 
 #include "DirInfo.hpp"
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <algorithm>
 #include <dirent.h>
 #include <errno.h>
 #include <fnmatch.h>
 #include <iomanip>
-#include <algorithm>
+#include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "info.hpp"
 
@@ -75,12 +76,17 @@ std::set<std::string> DirInfo::ourIgnoredDirectories;
 
 // ----------------------------------------------------------------------------
 
-DirInfo::DirInfo(long long size, DirInfo* parent)
-    : myName("(direct files)"),
+DirInfo::DirInfo(long long size, long long max, std::string const& name, DirInfo* parent)
+    : myName("(directory)"),
       myParent(parent),
       mySize(size),
       myDirectSize(size)
-{    
+{
+    if (!name.empty()) {
+        std::ostringstream os;
+        os << "(directory content, max: " << max*blockSize << " for " << name << ")";
+        myName = os.str();
+    }
 } // DirInfo
 
 // ----------------------------------------------------------------------------
@@ -91,6 +97,9 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
       mySize(0),
       myDirectSize(0)
 {
+    long long maxDirectEntry = 0;
+    std::string maxDirectEntryName;
+    
     message("Reading " + pPath);
     {
         struct stat info;
@@ -98,6 +107,8 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
             error("Error while getting information about " + pPath);
         } else {
             myDirectSize += info.st_blocks;
+            maxDirectEntry = myDirectSize;
+            maxDirectEntryName = "";
         }
     }
     
@@ -126,6 +137,10 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
                         mySubDirs.push_back(subInfo);
                     } else {
                         myDirectSize += info.st_blocks;
+                        if (maxDirectEntryName.empty() || info.st_blocks > maxDirectEntry) {
+                            maxDirectEntry = info.st_blocks;
+                            maxDirectEntryName = eName;
+                        }
                     }
                 }
             }
@@ -136,7 +151,13 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
         closedir(dirIter);
     }
     if (mySize != 0) {
-        mySubDirs.push_back(new DirInfo(myDirectSize, this));
+        mySubDirs.push_back
+            (new DirInfo(myDirectSize, maxDirectEntry, maxDirectEntryName, this));
+    } else if (!maxDirectEntryName.empty()) {
+        std::ostringstream os;
+        os << myName << " (max: " << maxDirectEntry*blockSize << " for "
+           << maxDirectEntryName << ")";
+        myName = os.str();
     }
     mySize += myDirectSize;
 } // DirInfo
