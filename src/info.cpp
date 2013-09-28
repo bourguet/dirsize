@@ -41,10 +41,14 @@
 #include <iostream>
 #include <iomanip>
 #include <string.h>
+#include <sys/stat.h>
 
 namespace
 {
+long long const blockSize = 512;
+
 bool theSilent = false;
+bool theLogicalSize = false;
 }
 
 // ----------------------------------------------------------------------------
@@ -60,6 +64,40 @@ bool isSilent()
 {
     return theSilent;
 } // isSilent
+
+// ----------------------------------------------------------------------------
+
+long long displaySize(long long sz)
+{
+    if (useLogicalSize())
+        return sz;
+    else
+        return sz*blockSize;    
+} // displaySize
+
+// ----------------------------------------------------------------------------
+
+long long getSize(struct stat& buf)
+{
+    if (useLogicalSize())
+        return buf.st_size;
+    else
+        return buf.st_blocks;
+} // getSize
+
+// ----------------------------------------------------------------------------
+
+void setLogicalSize(bool v)
+{
+    theLogicalSize = v;
+} // setLogicalSize
+
+// ----------------------------------------------------------------------------
+
+bool useLogicalSize()
+{
+    return theLogicalSize;
+} // useLogicalSize
 
 // ----------------------------------------------------------------------------
 

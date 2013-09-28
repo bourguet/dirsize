@@ -40,6 +40,10 @@
 
 #include <string>
 
+bool useLogicalSize();
+long long displaySize(long long);
+long long getSize(struct stat&);
+void setLogicalSize(bool);
 void setSilent(bool);
 bool isSilent();
 void message(std::string const&);

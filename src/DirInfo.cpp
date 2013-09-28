@@ -50,7 +50,6 @@
 
 namespace
 {
-long long const blockSize = 512;
 
 struct IsSmallerThan
 {
@@ -84,7 +83,8 @@ DirInfo::DirInfo(long long size, long long max, std::string const& name, DirInfo
 {
     if (!name.empty()) {
         std::ostringstream os;
-        os << "(directory content, max: " << max*blockSize << " for " << name << ")";
+        os << "(directory content, max: " << displaySize(max)
+           << " for " << name << ")";
         myName = os.str();
     }
 } // DirInfo
@@ -106,7 +106,7 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
         if (lstat(pPath.c_str(), &info) != 0) {
             error("Error while getting information about " + pPath);
         } else {
-            myDirectSize += info.st_blocks;
+            myDirectSize += getSize(info);
             maxDirectEntry = myDirectSize;
             maxDirectEntryName = "";
         }
@@ -136,9 +136,9 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
                         mySize += subInfo->mySize;
                         mySubDirs.push_back(subInfo);
                     } else {
-                        myDirectSize += info.st_blocks;
-                        if (maxDirectEntryName.empty() || info.st_blocks > maxDirectEntry) {
-                            maxDirectEntry = info.st_blocks;
+                        myDirectSize += getSize(info);
+                        if (maxDirectEntryName.empty() || getSize(info) > maxDirectEntry) {
+                            maxDirectEntry = getSize(info);
                             maxDirectEntryName = eName;
                         }
                     }
@@ -155,8 +155,8 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
             (new DirInfo(myDirectSize, maxDirectEntry, maxDirectEntryName, this));
     } else if (!maxDirectEntryName.empty()) {
         std::ostringstream os;
-        os << myName << " (max: " << maxDirectEntry*blockSize << " for "
-           << maxDirectEntryName << ")";
+        os << myName << " (max: " << displaySize(maxDirectEntry)
+           << " for " << maxDirectEntryName << ")";
         myName = os.str();
     }
     mySize += myDirectSize;
@@ -187,14 +187,14 @@ std::string DirInfo::path() const
 
 long long DirInfo::size() const
 {
-    return mySize * blockSize;
+    return displaySize(mySize);
 } // size
 
 // ----------------------------------------------------------------------------
 
 long long DirInfo::directSize() const
 {
-    return myDirectSize * blockSize;
+    return displaySize(myDirectSize);
 } // directSize
 
 // ----------------------------------------------------------------------------

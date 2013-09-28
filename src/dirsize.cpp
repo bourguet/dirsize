@@ -101,6 +101,7 @@ void help()
         "-d depth    show at least all directories until depth\n"
         "-t          show a directory tree\n"
         "-b          show both a tree and a flat view\n"
+        "-l          show logical size (instead of physical one)\n"
         "-s          silent, don't show progress\n";
 } // help
 
@@ -226,7 +227,7 @@ int main(int argc, char* argv[])
         std::locale::global(std::locale(""));
         std::cout.imbue(std::locale());
         
-        while (c = getopt(argc, argv, "hstbi:m:p:d:"), c != -1) {
+        while (c = getopt(argc, argv, "hstbli:m:p:d:"), c != -1) {
             switch (c) {
             case 'h':
                 help();
@@ -263,6 +264,9 @@ int main(int argc, char* argv[])
                 if (minimumDepth < 0) {
                     std::cerr << "Minimum depth should be above 0\n";
                 }
+                break;
+            case 'l':
+                setLogicalSize(true);
                 break;
             case '?':
                 errcnt++;
