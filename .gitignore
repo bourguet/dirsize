@@ -2,3 +2,5 @@
 *.o
 *.d
 src/dirsize
+doc/dirsize.pdf
+doc/dirsize.ps
