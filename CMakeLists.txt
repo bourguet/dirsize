@@ -53,4 +53,4 @@ add_custom_target(install-${PROJECT_NAME}
 
 add_custom_target(dist
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/.."
-        COMMAND tar cjfX ${PROJECT_NAME}-${VERSION}.tar.bz ${PROJECT_NAME}/excluded ${PROJECT_NAME})
+        COMMAND tar cjfX ${PROJECT_NAME}-$(VERSION).tar.bz ${PROJECT_NAME}/excluded ${PROJECT_NAME})
