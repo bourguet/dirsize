@@ -1,4 +1,6 @@
 .git
-*.d
+*~
+#*#
 dirsize/.gitignore
 dirsize/excluded
+dirsize/cmake-*
