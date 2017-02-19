@@ -1,6 +1,7 @@
-.git
 *~
 #*#
+dirsize/.git
 dirsize/.gitignore
-dirsize/excluded
+dirsize/.idea
 dirsize/cmake-*
+dirsize/excluded
