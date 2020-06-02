@@ -40,7 +40,7 @@ if(DevMode)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
 else()
     if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-        set(CMAKE_INSTALL_PREFIX "/opt/bourguet" CACHE PATH "..." FORCE)
+        set(CMAKE_INSTALL_PREFIX "/opt/bourguet" CACHE PATH "Install prefix" FORCE)
     endif()
 endif()
 
