@@ -157,23 +157,20 @@ class FlatDirDisplayer: public std::iterator<std::output_iterator_tag, DirInfo*>
 {
 public:
     FlatDirDisplayer(std::ostream& os);
-    // FlatDirDisplayer(FlatDirDisplayer const&);
-    // ~FlatDirDisplayer();
 
     FlatDirDisplayer& operator=(DirInfo* info);
     FlatDirDisplayer& operator++() { return *this; }
     FlatDirDisplayer& operator++(int) { return *this; }
     FlatDirDisplayer& operator*() { return *this; }
 private:
-    FlatDirDisplayer& operator=(FlatDirDisplayer const&);
 
-    std::ostream& myOS;
+    std::ostream* myOS;
 }; // FlatDirDisplayer
 
 // ----------------------------------------------------------------------------
 
 FlatDirDisplayer::FlatDirDisplayer(std::ostream& os)
-    : myOS(os)
+    : myOS(&os)
 {
 } // FlatDirDisplayer
 
@@ -181,7 +178,7 @@ FlatDirDisplayer::FlatDirDisplayer(std::ostream& os)
 
 FlatDirDisplayer& FlatDirDisplayer::operator=(DirInfo* info)
 {
-    myOS << std::setw(15) << format(info->size()) << " " << info->path() << '\n';
+    *myOS << std::setw(15) << format(info->size()) << " " << info->path() << '\n';
     return *this;
 } // operator=
 
