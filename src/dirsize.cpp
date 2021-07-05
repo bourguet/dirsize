@@ -2,7 +2,7 @@
 //
 // ----------------------------------------------------------------------------
 //
-// Copyright (C) 2012  Jean-Marc Bourguet
+// Copyright (C) 2012 -- 2021  Jean-Marc Bourguet
 //
 // All rights reserved.
 //
@@ -12,15 +12,15 @@
 //
 //   * Redistributions of source code must retain the above copyright
 //     notice, this list of conditions and the following disclaimer.
-// 
+//
 //   * Redistributions in binary form must reproduce the above copyright
 //     notice, this list of conditions and the following disclaimer in the
 //     documentation and/or other materials provided with the distribution.
-// 
+//
 //   * Neither the name of Jean-Marc Bourguet nor the names of other
 //     contributors may be used to endorse or promote products derived from
 //     this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 // IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -63,8 +63,9 @@
 
 bool showHierInfo = false;
 bool showFlatInfo = true;
+bool useReadableNumbers = false;
 long long minimumSize = 0;
-long long minimumPercent = 0;        
+long long minimumPercent = 0;
 long long minimumDepth = 0;
 
 // ----------------------------------------------------------------------------
@@ -82,7 +83,7 @@ public:
 /// Display simple usage information
 void usage()
 {
-    std::cout << "Usage: dirsize [-hstb] [-i dir] [-m minSize] [-p minPercent] [-d depth] dirs...\n";
+    std::cout << "Usage: dirsize [-hstblr] [-i dir] [-m minSize] [-p minPercent] [-d depth] dirs...\n";
 } // usage
 
 // ----------------------------------------------------------------------------
@@ -102,6 +103,7 @@ void help()
         "-t          show a directory tree\n"
         "-b          show both a tree and a flat view\n"
         "-l          show logical size (instead of physical one)\n"
+        "-r          show readable size (with SI units)\n"
         "-s          silent, don't show progress\n";
 } // help
 
@@ -148,8 +150,6 @@ long long evalString(std::string const& s, bool suffixes, bool binarySuffixes)
 } // evalString
 
 // ----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
 // FlatDirDisplayer
 // ----------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ public:
     FlatDirDisplayer& operator*() { return *this; }
 private:
     FlatDirDisplayer& operator=(FlatDirDisplayer const&);
-    
+
     std::ostream& myOS;
 }; // FlatDirDisplayer
 
@@ -181,7 +181,7 @@ FlatDirDisplayer::FlatDirDisplayer(std::ostream& os)
 
 FlatDirDisplayer& FlatDirDisplayer::operator=(DirInfo* info)
 {
-    myOS << std::setw(15) << info->size() << " " << info->path() << '\n';
+    myOS << std::setw(15) << format(info->size()) << " " << info->path() << '\n';
     return *this;
 } // operator=
 
@@ -196,23 +196,22 @@ bool isSmaller(DirInfo* l, DirInfo* r)
 
 void handleDirectory(std::string const& dir)
 {
-    DirInfo* topInfo = new DirInfo(dir, dir, NULL);
+    DirInfo topInfo(dir, dir, NULL);
     long long minSize = minimumSize;
     if (!isSilent())
         std::cout << "Reading directory structure done\n";
-    if (topInfo->size() * minimumPercent / 100 > minSize)
-        minSize = topInfo->size() * minimumPercent / 100;
+    if (topInfo.size() * minimumPercent / 100 > minSize)
+        minSize = topInfo.size() * minimumPercent / 100;
     if (showHierInfo) {
-        topInfo->showTree(std::cout, minSize, minimumDepth);
+        topInfo.showTree(std::cout, minSize, minimumDepth);
     }
     if (showFlatInfo) {
         std::deque<DirInfo*> flatDirs;
-        flatDirs.push_back(topInfo);
-        topInfo->collect(minSize, flatDirs, minimumDepth);
+        flatDirs.push_back(&topInfo);
+        topInfo.collect(minSize, flatDirs, minimumDepth);
         std::sort(flatDirs.begin(), flatDirs.end(), isSmaller);
         std::copy(flatDirs.begin(), flatDirs.end(), FlatDirDisplayer(std::cout));
     }
-    delete topInfo;
 } // handleDirectory
 
 // ----------------------------------------------------------------------------
@@ -221,13 +220,13 @@ void handleDirectory(std::string const& dir)
 int main(int argc, char* argv[])
 {
     int status = EXIT_SUCCESS;
-    
+
     try {
         int c, errcnt = 0;
         std::locale::global(std::locale(""));
         std::cout.imbue(std::locale());
-        
-        while (c = getopt(argc, argv, "hstbli:m:p:d:"), c != -1) {
+
+        while (c = getopt(argc, argv, "hstblri:m:p:d:"), c != -1) {
             switch (c) {
             case 'h':
                 help();
@@ -242,6 +241,9 @@ int main(int argc, char* argv[])
             case 'b':
                 showFlatInfo = true;
                 showHierInfo = true;
+                break;
+            case 'r':
+                setUseReadableNumbers(true);
                 break;
             case 'i':
                 DirInfo::addIgnoredDirectory(optarg);
@@ -276,7 +278,7 @@ int main(int argc, char* argv[])
                 errcnt++;
             }
         }
-        
+
         if (errcnt > 0) {
             usage();
             throw EXIT_FAILURE;

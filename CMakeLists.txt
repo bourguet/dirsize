@@ -1,4 +1,4 @@
-# Copyright (c) 2012  Jean-Marc Bourguet
+# Copyright (c) 2012 -- 2021 Jean-Marc Bourguet
 #
 # All rights reserved.
 #
@@ -29,7 +29,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 cmake_minimum_required(VERSION 3.5)
-project(dirsize CXX)
+project(dirsize LANGUAGES CXX VERSION 1.03)
 set(CMAKE_CXX_STANDARD 98)
 
 option(DevMode "Development mode" OFF)
@@ -47,10 +47,6 @@ endif()
 add_subdirectory(doc)
 add_subdirectory(src)
 
-add_custom_target(install-${PROJECT_NAME}
-        $(MAKE) install
-        COMMENT "Installing ${PROJECT_NAME}")
-
 add_custom_target(dist
         WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/.."
-        COMMAND tar cjfX ${PROJECT_NAME}-$(VERSION).tar.bz ${PROJECT_NAME}/excluded ${PROJECT_NAME})
+        COMMAND tar cafX ${PROJECT_NAME}-${PROJECT_VERSION}.tar.bz ${PROJECT_NAME}/excluded ${PROJECT_NAME})

@@ -1,4 +1,4 @@
-.TH DIRSIZE 1 "September 28, 2013" "Jean-Marc Bourguet" "Jean-Marc Bourguet's Utilities"
+.TH DIRSIZE 1 "July 5, 2021" "Jean-Marc Bourguet" "Jean-Marc Bourguet's Utilities"
 
 .SH NAME
 dirsize \- give details about disk occupation
@@ -22,7 +22,7 @@ built in help.
 silent, don't show progress information when collecting data.
 
 .TP
-.B \-t 
+.B \-t
 show a tree instead of a sorted flat view.
 
 .TP
@@ -34,10 +34,16 @@ show both a tree and a flat view.
 show the logical size instead of the disk occupation one.
 
 .TP
+.B \-r
+show size with a readable format (using IEC binary prefixes).
+
+.TP
 .BI \-m " size"
 show only directories more than
 .I size
 bytes.
+.I size
+can be specified with a suffix interpreted as a multiplier (with a binary interpretation, for instance K=Ki=1024).
 
 .TP
 .BI \-p " percent"
@@ -56,5 +62,5 @@ levels of subdirectories.
 ignore \fIdir\fR.
 
 .SH SEE ALSO
-.BR df (1), 
+.BR df (1),
 .BR du (1)

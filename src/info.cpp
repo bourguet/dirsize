@@ -1,8 +1,8 @@
 // info.cpp
-// 
+//
 // ----------------------------------------------------------------------------
-// 
-// Copyright (C) 2012  Jean-Marc Bourguet
+//
+// Copyright (C) 2012 -- 2021 Jean-Marc Bourguet
 //
 // All rights reserved.
 //
@@ -12,15 +12,15 @@
 //
 //   * Redistributions of source code must retain the above copyright
 //     notice, this list of conditions and the following disclaimer.
-// 
+//
 //   * Redistributions in binary form must reproduce the above copyright
 //     notice, this list of conditions and the following disclaimer in the
 //     documentation and/or other materials provided with the distribution.
-// 
+//
 //   * Neither the name of Jean-Marc Bourguet nor the names of other
 //     contributors may be used to endorse or promote products derived from
 //     this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 // IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -42,6 +42,7 @@
 #include <iomanip>
 #include <string.h>
 #include <sys/stat.h>
+#include <sstream>
 
 namespace
 {
@@ -49,6 +50,7 @@ long long const blockSize = 512;
 
 bool theSilent = false;
 bool theLogicalSize = false;
+bool theUseReadableNumbers = false;
 }
 
 // ----------------------------------------------------------------------------
@@ -72,7 +74,7 @@ long long displaySize(long long sz)
     if (useLogicalSize())
         return sz;
     else
-        return sz*blockSize;    
+        return sz*blockSize;
 } // displaySize
 
 // ----------------------------------------------------------------------------
@@ -94,10 +96,38 @@ void setLogicalSize(bool v)
 
 // ----------------------------------------------------------------------------
 
+void setUseReadableNumbers(bool v)
+{
+    theUseReadableNumbers = v;
+} // setUseReadableNumbers
+
+// ----------------------------------------------------------------------------
+
 bool useLogicalSize()
 {
     return theLogicalSize;
 } // useLogicalSize
+
+// ----------------------------------------------------------------------------
+
+std::string format(long long sz)
+{
+    char const* suffix = "";
+    if (theUseReadableNumbers) {
+        static char const* suffixes[] = { "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
+        long long fact = 1;
+        int suffixIndex = 0;
+        while (sz >= fact*10240 && suffixIndex < sizeof(suffixes)/sizeof(*suffixes)) {
+            fact *= 1024;
+            ++suffixIndex;
+        }
+        sz = (sz + fact/2)/fact;
+        suffix = suffixes[suffixIndex];
+    }
+    std::ostringstream os;
+    os << sz << ' ' << suffix;
+    return os.str();
+}
 
 // ----------------------------------------------------------------------------
 
