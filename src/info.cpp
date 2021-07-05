@@ -69,7 +69,7 @@ bool isSilent()
 
 // ----------------------------------------------------------------------------
 
-long long displaySize(long long sz)
+size_t displaySize(size_t sz)
 {
     if (useLogicalSize())
         return sz;
@@ -79,12 +79,12 @@ long long displaySize(long long sz)
 
 // ----------------------------------------------------------------------------
 
-long long getSize(struct stat& buf)
+size_t getSize(struct stat& buf)
 {
     if (useLogicalSize())
-        return buf.st_size;
+        return size_t(buf.st_size);
     else
-        return buf.st_blocks;
+        return size_t(buf.st_blocks);
 } // getSize
 
 // ----------------------------------------------------------------------------
@@ -110,13 +110,13 @@ bool useLogicalSize()
 
 // ----------------------------------------------------------------------------
 
-std::string format(long long sz)
+std::string format(size_t sz)
 {
     char const* suffix = "";
     if (theUseReadableNumbers) {
         static char const* suffixes[] = { "B", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB" };
-        long long fact = 1;
-        int suffixIndex = 0;
+        size_t fact = 1;
+        std::size_t suffixIndex = 0;
         while (sz >= fact*10240 && suffixIndex < sizeof(suffixes)/sizeof(*suffixes)) {
             fact *= 1024;
             ++suffixIndex;

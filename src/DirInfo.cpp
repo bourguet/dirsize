@@ -53,13 +53,13 @@ namespace
 
 struct IsSmallerThan
 {
-    IsSmallerThan(long long limit) : myLimit(limit) {}
+    IsSmallerThan(size_t limit) : myLimit(limit) {}
     bool operator()(DirInfo* dir)
     {
         return dir->size() < myLimit;
     }
 private:
-    long long myLimit;
+    size_t myLimit;
 };
 
 bool isBigger(DirInfo* l, DirInfo* r)
@@ -75,7 +75,7 @@ std::set<std::string> DirInfo::ourIgnoredDirectories;
 
 // ----------------------------------------------------------------------------
 
-DirInfo::DirInfo(long long size, long long max, std::string const& name, DirInfo* parent)
+DirInfo::DirInfo(size_t size, size_t max, std::string const& name, DirInfo* parent)
     : myName("(directory)"),
       myParent(parent),
       mySize(size),
@@ -97,7 +97,7 @@ DirInfo::DirInfo(std::string const& pName, std::string const& pPath, DirInfo* pa
       mySize(0),
       myDirectSize(0)
 {
-    long long maxDirectEntry = 0;
+    size_t maxDirectEntry = 0;
     std::string maxDirectEntryName;
 
     message("Reading " + pPath);
@@ -185,14 +185,14 @@ std::string DirInfo::path() const
 
 // ----------------------------------------------------------------------------
 
-long long DirInfo::size() const
+size_t DirInfo::size() const
 {
     return displaySize(mySize);
 } // size
 
 // ----------------------------------------------------------------------------
 
-long long DirInfo::directSize() const
+size_t DirInfo::directSize() const
 {
     return displaySize(myDirectSize);
 } // directSize
@@ -213,7 +213,7 @@ std::deque<DirInfo*>& DirInfo::subDirs()
 
 // ----------------------------------------------------------------------------
 
-void DirInfo::collect(long long minSize, std::deque<DirInfo*>& dirs, long long minDepth) const
+void DirInfo::collect(size_t minSize, std::deque<DirInfo*>& dirs, size_t minDepth) const
 {
     for (std::deque<DirInfo*>::const_iterator i = mySubDirs.begin(), e = mySubDirs.end();
          i != e; ++i)
@@ -249,7 +249,7 @@ bool DirInfo::ignored(std::string const& name, std::string const& path)
 
 // ----------------------------------------------------------------------------
 
-void DirInfo::showTree(std::ostream& os, long long minSize, long long minDepth) const
+void DirInfo::showTree(std::ostream& os, size_t minSize, size_t minDepth) const
 {
     std::deque<bool> hasOtherDirs;
     showTree(os, minSize, 0, minDepth, hasOtherDirs);
@@ -258,12 +258,12 @@ void DirInfo::showTree(std::ostream& os, long long minSize, long long minDepth) 
 // ----------------------------------------------------------------------------
 
 void DirInfo::showTree
-     (std::ostream& os, long long minSize, int level, long long minDepth,
+     (std::ostream& os, size_t minSize, size_t level, size_t minDepth,
       std::deque<bool> hasOtherDirs)
     const
 {
     os << std::setw(15) << format(size()) << " ";
-    for (int i = 0; i+1 < level; ++i)
+    for (std::size_t i = 0; i+1 < level; ++i)
     {
         os << (hasOtherDirs[i] ? "| " : "  ");
     }

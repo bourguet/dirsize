@@ -12,15 +12,15 @@
 //
 //   * Redistributions of source code must retain the above copyright
 //     notice, this list of conditions and the following disclaimer.
-// 
+//
 //   * Redistributions in binary form must reproduce the above copyright
 //     notice, this list of conditions and the following disclaimer in the
 //     documentation and/or other materials provided with the distribution.
-// 
+//
 //   * Neither the name of Jean-Marc Bourguet nor the names of other
 //     contributors may be used to endorse or promote products derived from
 //     this software without specific prior written permission.
-// 
+//
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
 // IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
 // TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
@@ -60,13 +60,13 @@ public:
     std::string name() const;
     std::string path() const;
     DirInfo* parent() const;
-    long long size() const;
-    long long directSize() const;
+    size_t size() const;
+    size_t directSize() const;
     std::deque<DirInfo*> const& subDirs() const;
     std::deque<DirInfo*>& subDirs();
 
-    void collect(long long minSize, std::deque<DirInfo*>& dirs, long long minDepth) const;
-    void showTree(std::ostream& os, long long minSize, long long minDepth) const;
+    void collect(size_t minSize, std::deque<DirInfo*>& dirs, size_t minDepth) const;
+    void showTree(std::ostream& os, size_t minSize, size_t minDepth) const;
     static void addIgnoredDirectory(std::string const& name);
 private: // and not implemented
     DirInfo(DirInfo const&);
@@ -77,19 +77,19 @@ private:
 
     static bool ignored(std::string const& name, std::string const& path);
 
-    DirInfo(long long pSize, long long max, std::string const& name, DirInfo* parent);
-    
+    DirInfo(size_t size, size_t max, std::string const& name, DirInfo* parent);
+
     std::string myName;
     DirInfo* myParent;
-    long long mySize;
-    long long myDirectSize;
+    size_t mySize;
+    size_t myDirectSize;
     std::deque<DirInfo*> mySubDirs;
 
     void showTree
-         (std::ostream& os, long long minSize, int level, long long minDepth,
+         (std::ostream& os, size_t minSize, size_t level, size_t minDepth,
           std::deque<bool> hasOtherDirs)
         const;
-    
+
 }; // DirInfo
 
 // ----------------------------------------------------------------------------

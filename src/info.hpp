@@ -41,13 +41,13 @@
 #include <string>
 
 bool useLogicalSize();
-long long displaySize(long long);
-long long getSize(struct stat&);
+size_t displaySize(size_t sz);
+size_t getSize(struct stat&);
 void setLogicalSize(bool);
 void setSilent(bool);
 void setUseReadableNumbers(bool);
 bool isSilent();
-std::string format(long long sz);
+std::string format(size_t sz);
 void message(std::string const&);
 void error(std::string const&);
 

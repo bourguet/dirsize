@@ -30,19 +30,22 @@
 
 cmake_minimum_required(VERSION 3.5)
 project(dirsize LANGUAGES CXX VERSION 1.03)
-set(CMAKE_CXX_STANDARD 98)
+set(CMAKE_CXX_STANDARD 11)
 
 option(DevMode "Development mode" OFF)
 
 if(DevMode)
     list(INSERT CMAKE_PREFIX_PATH 0 "${PROJECT_SOURCE_DIR}/..")
     set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/..")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    include(cmake/CompilerWarnings.cmake)
 else()
     if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
         set(CMAKE_INSTALL_PREFIX "/opt/bourguet" CACHE PATH "Install prefix" FORCE)
     endif()
+    function(set_project_warnings project_name)
+    endfunction()
 endif()
+
 
 add_subdirectory(doc)
 add_subdirectory(src)

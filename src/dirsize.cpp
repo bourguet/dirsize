@@ -64,9 +64,9 @@
 bool showHierInfo = false;
 bool showFlatInfo = true;
 bool useReadableNumbers = false;
-long long minimumSize = 0;
-long long minimumPercent = 0;
-long long minimumDepth = 0;
+size_t minimumSize = 0;
+size_t minimumPercent = 0;
+size_t minimumDepth = 0;
 
 // ----------------------------------------------------------------------------
 
@@ -110,19 +110,19 @@ void help()
 // ----------------------------------------------------------------------------
 
 /// Evaluate a string
-long long evalString(std::string const& s, bool suffixes, bool binarySuffixes)
+size_t evalString(std::string const& s, bool suffixes, bool binarySuffixes)
 {
     char const* data = s.c_str();
     char* end;
-    long long result = strtoll(data, &end, 0);
+    size_t result = strtoull(data, &end, 0);
     if (suffixes) {
         if (binarySuffixes || (*end != '\0' && end[1] == 'i')) {
             switch (*end) {
-            case 'E': result *= 1024;
-            case 'P': result *= 1024;
-            case 'T': result *= 1024;
-            case 'G': result *= 1024;
-            case 'M': result *= 1024;
+            case 'E': result *= 1024; /* fall through */
+            case 'P': result *= 1024; /* fall through */
+            case 'T': result *= 1024; /* fall through */
+            case 'G': result *= 1024; /* fall through */
+            case 'M': result *= 1024; /* fall through */
             case 'K': case 'k': result *= 1024;
                 ++end;
                 if (*end == 'i')
@@ -131,11 +131,11 @@ long long evalString(std::string const& s, bool suffixes, bool binarySuffixes)
             }
         } else {
             switch (*end) {
-            case 'E': result *= 1000;
-            case 'P': result *= 1000;
-            case 'T': result *= 1000;
-            case 'G': result *= 1000;
-            case 'M': result *= 1000;
+            case 'E': result *= 1000; /* fall through */
+            case 'P': result *= 1000; /* fall through */
+            case 'T': result *= 1000; /* fall through */
+            case 'G': result *= 1000; /* fall through */
+            case 'M': result *= 1000; /* fall through */
             case 'K': case 'k': result *= 1000;
                 ++end;
                 break;
@@ -194,7 +194,7 @@ bool isSmaller(DirInfo* l, DirInfo* r)
 void handleDirectory(std::string const& dir)
 {
     DirInfo topInfo(dir, dir, NULL);
-    long long minSize = minimumSize;
+    size_t minSize = minimumSize;
     if (!isSilent())
         std::cout << "Reading directory structure done\n";
     if (topInfo.size() * minimumPercent / 100 > minSize)
@@ -250,19 +250,13 @@ int main(int argc, char* argv[])
                 break;
             case 'p':
                 minimumPercent = evalString(optarg, false, false);
-                if (minimumPercent < 0) {
-                    std::cerr << "Minimum percentage should be above 0\n";
-                    errcnt++;
-                } else if (minimumPercent > 100) {
+                if (minimumPercent > 100) {
                     std::cerr << "Minimum percentage should be below 100\n";
                     errcnt++;
                 }
                 break;
             case 'd':
                 minimumDepth = evalString(optarg, false, false);
-                if (minimumDepth < 0) {
-                    std::cerr << "Minimum depth should be above 0\n";
-                }
                 break;
             case 'l':
                 setLogicalSize(true);
